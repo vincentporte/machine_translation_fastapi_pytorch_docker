@@ -39,6 +39,7 @@ class UserDB(User, fastapi_users_models.BaseUserDB, PydanticModel):
 
 class Product(models.Model):
     id = fields.IntField(pk=True)
+    entity_type = fields.CharField(max_length=2, default="XX")
     source = fields.CharField(max_length=50, unique=True)
     translation = fields.TextField()
     created_at = fields.DatetimeField(auto_now_add=True)

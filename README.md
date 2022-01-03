@@ -33,11 +33,12 @@
     <img src="images/logo.png" alt="Logo" width="80" height="80">
   </a>
 
-<h3 align="center">char level seq2seq machine translation</h3>
+<h3 align="center">char level seq2seq machine translation on named entities</h3>
 
+  <p align="left">
+    character level machine translation on named entities, using fastapi, spacy, pytorch sequence 2 sequence model and docker
+  </p>
   <p align="center">
-    character level machine translation, using fastapi, pytorch sequence 2 sequence model and docker
-    <br />
     <a href="https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker/issues">Report Bug</a>
     ·
     <a href="https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker/issues">Request Feature</a>
@@ -79,10 +80,11 @@
 
 ### Main goals
 
-Use this project to easily setup a machine translation api for authenticated user
- * Add your own translation in database,
- * train your models using your translation pairs
- * deploy it like a charm.
+Use this project to easily setup a machine translation api for authenticated user.
+Get 'normalized' entiites from a raw text (email, files, chatbot conversations): 
+1. Add your own translation in database,
+1. Crain your models using your translation pairs
+1. Convert raw entities into actionnable features
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -93,6 +95,7 @@ Use this project to easily setup a machine translation api for authenticated use
 * [FastAPI](https://fastapi.tiangolo.com/)
 * [FastAPI users](https://fastapi-users.github.io/)
 * [Pytorch](https://pytorch.org/)
+* [Spacy](https://spacy.io/)
 * [PostgreSQL](https://www.postgresql.org/)
 * [Nginx](https://www.nginx.com/)
 * [Docker](https://www.docker.com/)
@@ -104,49 +107,10 @@ Use this project to easily setup a machine translation api for authenticated use
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
 
-### Prerequisites (based on Ubuntu 20.04 LTS)
+### Prerequisites
 
-* Update existing packages, and install a few prerequisite packages which let apt use packages over HTTPS
-  ```sh
-  sudo apt update && sudo apt upgrade -y
-  sudo apt install -y apt-transport-https ca-certificates curl software-properties-common gnupg-agent
-  ```
-* Add docker signin keys
-  ```sh
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-  ```
-* Verify signature
-  ```sh
-  sudo apt-key fingerprint 0EBFCD88
-  ```
-  output must look like
-  ```sh
-  pub   rsa4096 2017-02-22 [SCEA]
-        9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88
-  uid           [ unknown] Docker Release (CE deb) <docker@docker.com>
-  sub   rsa4096 2017-02-22 [S]
-  ```
-* Add docker repository
-  ```sh
-  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-  sudo apt-get update  ```
-* Install docker
-  ```sh
-  sudo apt-get install docker-ce docker-ce-cli containerd.io -y
-  ```
-* Add user to docker group
-  ```sh
-  sudo usermod -a -G docker $USER
-  ```
-  then logout
-* Install docker-compose v2.2.2 (latest at 2021-12-29)
-  ```sh
-  sudo curl -L "https://github.com/docker/compose/releases/download/v2.2.2/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
-  sudo chmod +x /usr/local/bin/docker-compose
-  ```
+* Install Docker and Docker-Compose
 
 ### Installation
 
@@ -166,6 +130,11 @@ To get a local copy up and running follow these simple example steps.
   SECRET_KEY=secret_key_for_users_management
   DATABASE_URL=postgres://db_user:db_pass@db:5432/db_name
   ```
+* Add your own NER model, see [Spacy docs](https://spacy.io/usage/training)
+* Add your dataset files and train your own seq2seq model
+  ```sh
+  docker-compose exec backend python app/services/training.py
+  ```
 * Run your containers
   ```sh
   docker-compose up -d;docker-compose logs -f
@@ -177,6 +146,7 @@ To get a local copy up and running follow these simple example steps.
 * Run tests
   ```sh
   docker-compose exec backend pytest
+  ```
 
 ### Setup superuser (after you registered it through API endpoint)
 * Access DB cmd line
@@ -200,8 +170,7 @@ To get a local copy up and running follow these simple example steps.
 
 ### Deployement
 
-* Replace /config/nginx/nginx.conf with nginx.conf.live
-* Update server_name refs
+* Replace /config/nginx/nginx.conf with nginx.conf.live and update server_name refs
   ```sh
   server_name subdomain.domain.com;
   ```
@@ -227,15 +196,215 @@ To get a local copy up and running follow these simple example steps.
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-* Register new user
-  ```sh
-  http://localhost/auth/register
-  ```
-* Log in
-  ```sh
-  http://localhost/auth/login
-  ```
+### Users
 
+Using [FastAPIUsers](https://fastapi-users.github.io/fastapi-users/usage/flow/)
+
+#### Registering
+
+    curl \
+        -H "Content-Type: application/json" \
+        -X POST \
+        -d "{\"email\": \"paul@domain.com\",\"password\": \"strongpassword\"}" \
+        http://localhost/auth/register
+
+Returns:
+
+```json
+{
+    "id":"800e9564-6804-4ab5-bc59-a088182227be",
+    "email":"paul@domain.com",
+    "is_active":true,
+    "is_superuser":false,
+    "is_verified":false
+}
+```
+
+#### Login
+
+    curl \
+        -H "Content-Type: multipart/form-data" \
+        -X POST \
+        -F "username=paul@domain.com" \
+        -F "password=strongpassword" \
+        http://localhost:8000/auth/login
+
+Returns:
+
+```json
+{
+    "access_token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoiODAwZTk1NjQtNjgwNC00YWI1LWJjNTktYTA4ODE4MjIyN2JlIiwiYXVkIjpbImZhc3RhcGktdXNlcnM6YXV0aCJdLCJleHAiOjE2MzAxMzk5OTJ9.w-ZWpm51fyybFivmKjun3qbXuqwXCgYyxGbPD1yhIr4",
+    "token_type":"bearer"
+}
+```
+
+### Translations
+
+#### Add a translation pair to your training dataset
+
+curl -X 'POST' \
+  'http://localhost/products' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer token' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "entity_type": "FO",
+  "source": "fo a4",
+  "translation": "format ouvert : 210.0 x 297.0 mm"
+}'
+
+
+Returns:
+
+```json
+{
+  "id": 2,
+  "entity_type": "FO",
+  "source": "fo a4",
+  "translation": "format ouvert : 210.0 x 297.0 mm"
+}
+
+#### Export your training seq2seq training dataset (user must be "verified")
+
+curl -X 'POST' \
+  'http://localhost/products/extract' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer token' \
+  -d ''
+
+Returns:
+
+```json
+{
+  "msg": "extracting"
+}
+
+
+#### Get entities from text
+
+curl -X 'POST' \
+  'http://localhost/ner' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer token' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "sentence": "un devis pour 500 flyers en quadri r/v, format a4 pour demain svp"
+}'
+
+
+Returns:
+
+```json
+{
+  "entities": [
+    {
+      "text": "500",
+      "entity": "EXEMPLAIRES",
+      "pos": 0,
+      "start": 14,
+      "end": 17
+    },
+    {
+      "text": "flyers",
+      "entity": "PRODUCT",
+      "pos": 1,
+      "start": 18,
+      "end": 24
+    },
+    {
+      "text": "quadri r/v",
+      "entity": "IMPRESSION",
+      "pos": 2,
+      "start": 28,
+      "end": 38
+    },
+    {
+      "text": "format a4",
+      "entity": "FORMAT",
+      "pos": 3,
+      "start": 40,
+      "end": 49
+    }
+  ],
+  "ner": "imprimeur_4.3.20210312124255"
+}
+
+#### Translate text entities
+
+curl -X 'POST' \
+  'http://localhost/translate' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer token' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "entities": [
+    {
+      "text": "500",
+      "entity": "EXEMPLAIRES",
+      "pos": 0,
+      "start": 14,
+      "end": 17
+    },
+    {
+      "text": "flyers",
+      "entity": "PRODUCT",
+      "pos": 1,
+      "start": 18,
+      "end": 24
+    },
+    {
+      "text": "quadri r/v",
+      "entity": "IMPRESSION",
+      "pos": 2,
+      "start": 28,
+      "end": 38
+    },
+    {
+      "text": "format a4",
+      "entity": "FORMAT",
+      "pos": 3,
+      "start": 40,
+      "end": 49
+    }
+  ],
+  "model": "imprimeur"
+}'
+
+Returns:
+
+```json
+{
+  "entities": [
+    {
+      "text": "500",
+      "entity": "EXEMPLAIRES",
+      "pos": 0,
+      "start": 14,
+      "end": 17
+    },
+    {
+      "text": "flyers",
+      "entity": "PRODUCT",
+      "pos": 1,
+      "start": 18,
+      "end": 24
+    },
+    {
+      "text": "recto : quadri, verso : quadri",
+      "entity": "IMPRESSION",
+      "pos": 2,
+      "start": 28,
+      "end": 38
+    },
+    {
+      "text": "format fini : 210.0 x 297.0 mm",
+      "entity": "FORMAT",
+      "pos": 3,
+      "start": 40,
+      "end": 49
+    }
+  ]
+}
 
 _For more examples, please refer to the [Documentation](http://localhost/docs)_
 
@@ -246,13 +415,13 @@ _For more examples, please refer to the [Documentation](http://localhost/docs)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [] Train translation model with users dataset
-    - [] add translation pairs in DB
-    - [] extract dataset and train pytorch model
-- [] User Verification by email
-    - [] setup mailgun API Key
-- [] Named entity recognition to extract part of text to translate
-    - [] setup spay
+- [x] Train translation model with users dataset
+    - [x] add translation pairs in DB
+    - [x] extract dataset and train pytorch model
+- [ ] User Verification by email
+    - [ ] setup mailgun API Key
+- [x] Named entity recognition to extract part of text to translate
+    - [x] setup spay
 
 See the [open issues](https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker/issues) for a full list of proposed features (and known issues).
 

@@ -8,7 +8,7 @@ client = TestClient(app)
 def test_status(client: TestClient):
     response = client.get("/status")
     assert response.status_code == 200
-    assert response.json() == {"status": "up"}
+    assert response.json() == {"msg": "status up"}
 
 
 def test_home(client: TestClient):

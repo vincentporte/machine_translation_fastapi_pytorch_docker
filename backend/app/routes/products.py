@@ -1,6 +1,7 @@
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from tortoise.contrib.fastapi import HTTPNotFoundError
 from tortoise.exceptions import DoesNotExist, IntegrityError
 
@@ -8,7 +9,7 @@ import app.crud.products as crud
 from app.schemas.products import ProductOutSchema, ProductInSchema, UpdateProduct
 from app.schemas.status import Status
 from app.database.models import UserDB
-from app.core.users import current_active_user
+from app.services.users import current_active_user, current_active_verified_user
 
 router = APIRouter()
 
@@ -100,3 +101,14 @@ async def delete_product(
     product_id: int,
 ):
     return await crud.delete_product(product_id)
+
+
+@router.post(
+    "/products/extract",
+    response_model=Status,
+    responses={404: {"model": HTTPNotFoundError}},
+    dependencies=[Depends(current_active_verified_user)],
+)
+async def task_extract(user: UserDB = Depends(current_active_user)):
+    response = await crud.extract_train()
+    return JSONResponse(content=response)

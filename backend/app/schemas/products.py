@@ -20,7 +20,7 @@ ProductInSchema = pydantic_model_creator(
 ProductOutSchema = pydantic_model_creator(
     Product,
     name="ProductOut",
-    exclude=["created_at", "modified_at", "created_by"],
+    exclude=["created_at", "modified_at", "created_by", "created_by_id"],
 )
 
 

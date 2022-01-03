@@ -1,7 +1,7 @@
 import pytest
 import asyncio
 
-from starlette.testclient import TestClient
+from fastapi.testclient import TestClient
 from tortoise.contrib.starlette import register_tortoise
 from fastapi_users.password import get_password_hash
 
@@ -37,26 +37,3 @@ def client_with_db():
 
         # testing
         yield client_with_db
-
-
-@pytest.fixture(scope="module")
-def event_loop(client: TestClient) -> Generator:
-    yield client.task.get_loop()
-
-
-@pytest.fixture(scope="module")
-def verified_user() -> UserModel:
-    return UserModel(
-        email="verified@domain.com",
-        hashed_password=atreides_password_hash,
-        is_active=True,
-        is_verified=True,
-    )
-
-
-@pytest.fixture(scope="module")
-def db_verified_user(verified_user, event_loop: asyncio.AbstractEventLoop) -> UserModel:
-
-    event_loop.run_until_complete(verified_user.save())
-
-    return verified_user

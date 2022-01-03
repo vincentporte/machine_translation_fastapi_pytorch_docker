@@ -9,30 +9,51 @@ from app.database.config import TORTOISE_ORM  # application models config
 from app.database.register import register_tortoise
 
 from app.database.models import UserDB
-from app.core.users import current_active_user
+from app.services.users import current_active_user
+from app.services.pytorch import load_lang, load_pytorch_checkpoint_inference
 
-# from src.core.predictions import Prediction
+from pathlib import Path
 
+import spacy
+import torch
 
-# import numpy as np
-# from pathlib import Path
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #########################################################################
 # MODELS LOADERS
 #########################################################################
-## SUGGESTIONS and PRICES
-# workspace = "./datas"
-# name = "imprimeur"
-# target = "models"
-# source = "source"
-# preds = Prediction(name, workspace, target, source, debug=False)
-# print(f"MAIN preds {preds.name}")
+# paths
+workspace = "datas"
+name = "imprimeur"
+target = "models"
+source = "source"
+
+## SPACY
+nlp_name = "imprimerie_NER_CATEG"
+nlp_model = spacy.load(Path(workspace).joinpath(name, target, nlp_name))
+print(f"MAIN nlp_model {nlp_model._meta}")
+
+## PYTORCH
+input_lang_name = "imprimerie_brute"
+output_lang_name = "imprimerie_normalisee"
+
+PATH_SEQ2SEQ = Path(workspace).joinpath(name, target)
+PATH_SEQ2SEQ_MODEL = PATH_SEQ2SEQ.joinpath(
+    "seq2seq_imprimerie_brute_imprimerie_normalisee_512_0.01_1641223250_1.38325.dill"
+)
+seq2seq_input_lang, seq2seq_output_lang = load_lang(
+    input_lang_name, output_lang_name, Path(PATH_SEQ2SEQ)
+)
+seq2seq_encoder, seq2seq_decoder = load_pytorch_checkpoint_inference(
+    Path(PATH_SEQ2SEQ_MODEL), seq2seq_input_lang, seq2seq_output_lang, device, 512
+)
+
 
 ## TORTOISE
 # enable schemas to read relationship between models
 Tortoise.init_models(["app.database.models"], "models")
 
-from app.routes import users, products  # destinations, prices, tasks, users
+from app.routes import users, products, translation, ner
 
 #########################################################################
 # APP
@@ -50,9 +71,9 @@ app.add_middleware(
 
 app.include_router(users.router, tags=["users"])
 app.include_router(products.router, tags=["products"])
-# app.include_router(destinations.router, tags=["destinations"])
-# app.include_router(prices.router, tags=["prices"])
-# app.include_router(tasks.router, tags=["tasks"])
+app.include_router(ner.router, tags=["named entities recognitions"])
+app.include_router(translation.router, tags=["translations"])
+
 
 register_tortoise(app, config=TORTOISE_ORM, generate_schemas=True)
 
@@ -66,4 +87,4 @@ async def home():
 
 @app.get("/status")
 async def health():
-    return {"status": "up"}
+    return {"msg": "status up"}

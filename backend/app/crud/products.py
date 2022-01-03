@@ -2,12 +2,12 @@ from fastapi import HTTPException, Depends
 from tortoise.exceptions import DoesNotExist
 
 from app.database.models import Product, UserDB, UserModel
-from app.schemas.products import (
-    ProductInSchema,
-    ProductOutSchema,
-)
+from app.schemas.products import ProductInSchema, ProductOutSchema
 from app.schemas.status import Status
-from app.core.users import current_active_user
+from app.services.users import current_active_user
+
+from pathlib import Path
+from app.main import workspace, name, source
 
 
 async def get_products():
@@ -39,11 +39,8 @@ async def update_product(
     except DoesNotExist:
         raise HTTPException(status_code=404, detail=f"Product {product_id} not found")
 
-    if db_product.created_by.id == current_active_user.id:
-        await Product.filter(id=product_id).update(**product.dict(exclude_unset=True))
-        return await ProductOutSchema.from_queryset_single(Product.get(id=note_id))
-
-    raise HTTPException(status_code=403, detail=f"Not authorized to update")
+    await Product.filter(id=product_id).update(**product.dict(exclude_unset=True))
+    return await ProductOutSchema.from_queryset_single(Product.get(id=product_id))
 
 
 async def delete_product(product_id) -> Status:
@@ -54,4 +51,20 @@ async def delete_product(product_id) -> Status:
     except DoesNotExist:
         raise HTTPException(status_code=404, detail=f"Product {product_id} not found")
 
-    raise HTTPException(status_code=403, detail=f"Not authorized to delete")
+
+async def extract_train():
+    extracts = []
+    products = await ProductOutSchema.from_queryset(Product.all())
+
+    path_source = Path(workspace).joinpath(name, source)
+    path_source.mkdir(parents=True, exist_ok=True)
+
+    MyFile = open(path_source.joinpath("extract.txt"), "w")
+
+    for product in products:
+        line = f"{product.entity_type}|{product.source}\t{product.translation}\n"
+        MyFile.write(line)
+
+    MyFile.close()
+
+    return {"msg": "extracting"}
