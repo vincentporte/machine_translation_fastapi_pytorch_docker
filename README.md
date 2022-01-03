@@ -68,6 +68,11 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
+       <ul>
+        <li><a href="#users">Users</a></li>
+        <li><a href="#named-entities-recognition">Named Entities Recognition</a></li>
+        <li><a href="#translations">translations</a></li>
+      </ul>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -240,48 +245,7 @@ Returns:
     "token_type":"bearer"
 }
 ```
-
-### Translations
-
-#### Add a translation pair to your training dataset
-
-curl -X 'POST' \
-  'http://localhost/products' \
-  -H 'accept: application/json' \
-  -H 'Authorization: Bearer token' \
-  -H 'Content-Type: application/json' \
-  -d '{
-  "entity_type": "FO",
-  "source": "fo a4",
-  "translation": "format ouvert : 210.0 x 297.0 mm"
-}'
-
-
-Returns:
-
-```json
-{
-  "id": 2,
-  "entity_type": "FO",
-  "source": "fo a4",
-  "translation": "format ouvert : 210.0 x 297.0 mm"
-}
-
-#### Export your training seq2seq training dataset (user must be "verified")
-
-curl -X 'POST' \
-  'http://localhost/products/extract' \
-  -H 'accept: application/json' \
-  -H 'Authorization: Bearer token' \
-  -d ''
-
-Returns:
-
-```json
-{
-  "msg": "extracting"
-}
-
+### Named Entities Recognition
 
 #### Get entities from text
 
@@ -331,6 +295,51 @@ Returns:
   ],
   "ner": "imprimeur_4.3.20210312124255"
 }
+```
+
+
+### Translations
+
+#### Add a translation pair to your training dataset
+
+curl -X 'POST' \
+  'http://localhost/products' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer token' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "entity_type": "FO",
+  "source": "fo a4",
+  "translation": "format ouvert : 210.0 x 297.0 mm"
+}'
+
+
+Returns:
+
+```json
+{
+  "id": 2,
+  "entity_type": "FO",
+  "source": "fo a4",
+  "translation": "format ouvert : 210.0 x 297.0 mm"
+}
+```
+
+#### Export your training seq2seq training dataset (user must be "verified")
+
+curl -X 'POST' \
+  'http://localhost/products/extract' \
+  -H 'accept: application/json' \
+  -H 'Authorization: Bearer token' \
+  -d ''
+
+Returns:
+
+```json
+{
+  "msg": "extracting"
+}
+```
 
 #### Translate text entities
 
@@ -408,6 +417,7 @@ Returns:
     }
   ]
 }
+```
 
 _For more examples, please refer to the [Documentation](http://localhost/docs)_
 
