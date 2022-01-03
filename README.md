@@ -188,6 +188,7 @@ To get a local copy up and running follow these simple example steps.
   ```sh
   docker-compose exec backend aerich migrate
   ```
+* Apply upgrade to DB
   ```sh
   docker-compose exec backend aerich upgrade
   ```
