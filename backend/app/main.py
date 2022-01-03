@@ -8,9 +8,11 @@ from tortoise import Tortoise  # enable schemas to read relationship between mod
 from app.database.config import TORTOISE_ORM  # application models config
 from app.database.register import register_tortoise
 
-# from src.database.models import UserDB
+from app.database.models import UserDB
+from app.core.users import current_active_user
+
 # from src.core.predictions import Prediction
-# from src.core.users import current_active_user
+
 
 # import numpy as np
 # from pathlib import Path
@@ -30,7 +32,7 @@ from app.database.register import register_tortoise
 # enable schemas to read relationship between models
 Tortoise.init_models(["app.database.models"], "models")
 
-# from src.routes import products, destinations, prices, tasks, users
+from app.routes import users  # products, destinations, prices, tasks, users
 
 #########################################################################
 # APP
@@ -50,7 +52,7 @@ app.add_middleware(
 # app.include_router(destinations.router, tags=["destinations"])
 # app.include_router(prices.router, tags=["prices"])
 # app.include_router(tasks.router, tags=["tasks"])
-# app.include_router(users.router, tags=["users"])
+app.include_router(users.router, tags=["users"])
 
 register_tortoise(app, config=TORTOISE_ORM, generate_schemas=True)
 

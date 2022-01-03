@@ -1,6 +1,6 @@
 from starlette.testclient import TestClient
 
-from src.main import app
+from app.main import app
 
 client = TestClient(app)
 
@@ -17,24 +17,3 @@ def test_home(test_app):
     assert response.json() == {
         "msg": f"wercome on our character level sequence 2 sequence machine translation demo"
     }
-
-
-# TESTS NON AUTHENT
-# user whoami
-
-# USERS CREATION
-# register user 1
-# register user 2
-# login user 1
-
-# TESTS AUTHENT
-# user whoami
-# create note user 1
-# create note user 2
-# get note user 1
-# update note user 1
-# update note user 2
-# delete note user 1
-# delete note user 2
-# delete user 2
-# delete user 1
