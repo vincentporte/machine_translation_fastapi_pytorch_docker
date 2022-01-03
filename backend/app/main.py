@@ -39,7 +39,7 @@ output_lang_name = "imprimerie_normalisee"
 
 PATH_SEQ2SEQ = Path(workspace).joinpath(name, target)
 PATH_SEQ2SEQ_MODEL = PATH_SEQ2SEQ.joinpath(
-    "seq2seq_imprimerie_brute_imprimerie_normalisee_512_0.01_1641252036_0.42085.dill"
+    "seq2seq_imprimerie_brute_imprimerie_normalisee_512_0.01_1641252875_0.31942.dill"
 )
 seq2seq_input_lang, seq2seq_output_lang = load_lang(
     input_lang_name, output_lang_name, Path(PATH_SEQ2SEQ)
