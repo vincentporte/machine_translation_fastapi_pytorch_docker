@@ -67,8 +67,3 @@ async def home():
 @app.get("/status")
 async def health():
     return {"status": "up"}
-
-
-# @app.get("/authenticated-route")
-# async def authenticated_route(user: UserDB = Depends(current_active_user)):
-#    return {"message": f"Hello {user.email} {user.id}!"}
