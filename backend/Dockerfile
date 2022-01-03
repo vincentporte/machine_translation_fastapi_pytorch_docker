@@ -1,6 +1,6 @@
 FROM python:3.9-buster
 
-LABEL org.opencontainers.image.authors="vincent@neuralia.co"
+LABEL org.opencontainers.image.authors="contact@neuralia.co"
 
 RUN mkdir app
 WORKDIR /app
