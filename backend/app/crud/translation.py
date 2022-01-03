@@ -25,29 +25,21 @@ translate_entity, entity: ('entities', [EntitySchema(text='500', entity='EXEMPLA
 
 
 def translate_entity(entity: EntitySchema, input_lang, output_lang, encoder, decoder):
-    print("dans translate_entity:", entity)
-    # if entity[1] in ["FORMAT", "GRAMMAGES", "PAPIER", "IMPRESSION", "PRODUCT"]:
+
     if entity["entity"] in ["FORMAT", "GRAMMAGES", "PAPIER", "IMPRESSION", "PRODUCT"]:
-        # text = f"{entity[1][:2]}|{entity[0]}"
         text = entity["entity"][:2] + "|" + entity["text"]
-        print(text)
         output_chars, attentions = evaluate(
             encoder, decoder, input_lang, output_lang, text
         )
-        print(output_chars)
-        output_chars = "".join(output_chars).rstrip("<EOS>")
-        # entity = (output_chars, entity[1], entity[2], entity[3], entity[4])
-        entity["text"] = output_chars
+        entity["text"] = "".join(output_chars).rstrip("<EOS>")
 
-    print("translate_entity, entity:", entity)
     return EntitySchema(**entity)
 
 
 async def translate_entities(entities: TranslationInSchema) -> TranslationOutSchema:
-    print("je suis dans crud translate_entities, entities:", entities)
-    print(entities.entities)
+
     ents = [ent.dict(exclude_unset=True) for ent in entities.entities]
-    print(ents)
+
     translation = []
 
     entities = list(
@@ -62,5 +54,5 @@ async def translate_entities(entities: TranslationInSchema) -> TranslationOutSch
             ents,
         )
     )
-    print("entities après trad, entities:", entities)
+
     return {"entities": entities}

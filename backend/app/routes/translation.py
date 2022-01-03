@@ -22,5 +22,4 @@ router = APIRouter()
     dependencies=[Depends(current_active_user)],
 )
 async def translate(entities: TranslationInSchema) -> TranslationOutSchema:
-    print("je suis dans la route translate, entities:", entities)
     return await crud.translate_entities(entities)
