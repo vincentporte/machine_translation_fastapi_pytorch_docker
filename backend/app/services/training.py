@@ -3,7 +3,7 @@ import random
 from pathlib import Path
 
 from app.services.pytorch import *
-from app.main import workspace, name, source, target, device
+from app.main import workspace, name, source, target, device, input_lang_name, output_lang_name
 
 #########################################################################
 # GLOBAL VARS
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # making Lang dictionnaries
 
     input_lang, output_lang, pairs = prepareData(
-        input_lang, output_lang, path_source, False
+        input_lang_name, output_lang_name, path_source, False
     )
 
     random.shuffle(pairs)
