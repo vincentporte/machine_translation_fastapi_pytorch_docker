@@ -77,7 +77,12 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-You can use this project to easily setup a machine translation api for authenticated user. You can add your own translation in database, train your models using these translation and deploy it like a charm.
+### Main goals
+
+Use this project to easily setup a machine translation api for authenticated user
+ * Add your own translation in database,
+ * train your models using your translation pairs
+ * deploy it like a charm.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
