@@ -62,6 +62,9 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
+        <li><a href="#setup-superuser">Setup superuser</a></li>
+        <li><a href="#upgrade-database-model">Upgrade Database Model</a></li>
+        <li><a href="#deployement">Deployement</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
@@ -131,10 +134,6 @@ Get 'normalized' entiites from a raw text (email, files, chatbot conversations):
   DATABASE_URL=postgres://db_user:db_pass@db:5432/db_name
   ```
 * Add your own NER model, see [Spacy docs](https://spacy.io/usage/training)
-* Add your dataset files and train your own seq2seq model
-  ```sh
-  docker-compose exec backend python app/services/training.py
-  ```
 * Run your containers
   ```sh
   docker-compose up -d;docker-compose logs -f
@@ -143,12 +142,16 @@ Get 'normalized' entiites from a raw text (email, files, chatbot conversations):
   ```sh
   docker-compose exec backend aerich init-db
   ```
-* Run tests
+* Add your dataset files and train your own seq2seq model
+  ```sh
+  docker-compose exec backend python app/services/training.py
+  ```
+  * Run tests
   ```sh
   docker-compose exec backend pytest
   ```
 
-### Setup superuser (after you registered it through API endpoint)
+### Setup superuser
 * Access DB cmd line
   ```sh
   docker exec -it mt_db psql -U db_user -h 127.0.0.1 -W db_name
