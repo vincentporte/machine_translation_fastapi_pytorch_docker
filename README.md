@@ -193,7 +193,7 @@ Get 'normalized' entiites from a raw text (email, files, chatbot conversations):
   ```
 * Run letsencrypt.sh script to setup certificates
   ```sh
-  exec sudo ./init-letsencrypt.sh
+  sudo ./init-letsencrypt.sh
   ```
 
 
