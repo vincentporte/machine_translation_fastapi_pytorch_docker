@@ -22,3 +22,4 @@ uvicorn[standard] #to avoid ssl redirection issue
 # dev
 pytest==6.2.5
 requests==2.26.0
+asyncio==3.4.3

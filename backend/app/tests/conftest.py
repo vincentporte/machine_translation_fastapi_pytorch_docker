@@ -1,32 +1,62 @@
 import pytest
+import asyncio
+
 from starlette.testclient import TestClient
-
-# from tortoise.contrib.fastapi import register_tortoise
-from app.database.config import TORTOISE_ORM
-from app.database.register import register_tortoise
-
-from decouple import config
+from tortoise.contrib.starlette import register_tortoise
+from fastapi_users.password import get_password_hash
 
 from app.main import app
+from app.database.models import UserModel
 
-# Tortoise.init_models(["app.database.models"], "models")
+from decouple import config
+from typing import Generator
+
 DATABASE_URL = config("DATABASE_URL")
+
+atreides_password_hash = get_password_hash("atreides")
 
 
 @pytest.fixture(scope="module")
-def test_app():
+def client():
     client = TestClient(app)
     yield client  # testing happens here
 
 
 @pytest.fixture(scope="module")
-def test_app_with_db():
-    # set up
+def client_with_db():
     client = TestClient(app)
-    # app.dependency_overrides[get_settings] = get_settings_override
-    register_tortoise(app, config=TORTOISE_ORM, generate_schemas=True)
+    register_tortoise(
+        app,
+        db_url="sqlite://:memory:",
+        # db_url=DATABASE_URL,
+        modules={"models": ["app.database.models"]},
+        generate_schemas=True,
+    )
 
-    with TestClient(app) as test_client:
+    with TestClient(app) as client_with_db:
 
         # testing
-        yield test_client
+        yield client_with_db
+
+
+@pytest.fixture(scope="module")
+def event_loop(client: TestClient) -> Generator:
+    yield client.task.get_loop()
+
+
+@pytest.fixture(scope="module")
+def verified_user() -> UserModel:
+    return UserModel(
+        email="verified@domain.com",
+        hashed_password=atreides_password_hash,
+        is_active=True,
+        is_verified=True,
+    )
+
+
+@pytest.fixture(scope="module")
+def db_verified_user(verified_user, event_loop: asyncio.AbstractEventLoop) -> UserModel:
+
+    event_loop.run_until_complete(verified_user.save())
+
+    return verified_user

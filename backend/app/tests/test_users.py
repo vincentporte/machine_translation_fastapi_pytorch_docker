@@ -5,54 +5,37 @@ from app.main import app
 client = TestClient(app)
 
 
-# test register user
-def test_register_user(test_app_with_db):
+def test_jwt_register_and_auth(client_with_db: TestClient) -> None:
+
+    email = "user@domain.com"
+    password = "bépo"
+
     response = client.post(
-        "/auth/register",
-        headers={"accept": "application/json", "Content-Type": "application/json"},
-        json={"email": "superuser@domain.com", "password": "123"},
+        "/auth/register", json={"email": email, "password": password}
     )
+
+    assert response.json()["email"] == "user@domain.com"
+    assert response.json()["is_active"]
+    assert not response.json()["is_superuser"]
     assert response.status_code == 201
-    assert "id" in response.json()
 
+    response = client.post(
+        "/auth/login", data={"username": email, "password": password}
+    )
 
-# test login good password
-def test_register_user(test_app_with_db):
-    response = client.post(
-        "/auth/register",
-        headers={"accept": "application/json", "Content-Type": "application/json"},
-        json={"email": "superuser@domain.com", "password": "123"},
-    )
-    response = client.post(
-        "/auth/login",
-        headers={
-            "accept": "application/json",
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        data={"username": "superuser@domain.com", "password": "123"},
-    )
-    print(response)
-    print(response.json())
     assert response.status_code == 200
+    assert response.json()["token_type"] == "bearer"
     assert "access_token" in response.json()
 
 
-# test login bad password
-def test_register_user(test_app_with_db):
+def test_jwt_register_and_failed_auth(client_with_db: TestClient) -> None:
+
+    email = "user@domain.com"
+    bad_password = "azerty"
+
     response = client.post(
-        "/auth/register",
-        headers={"accept": "application/json", "Content-Type": "application/json"},
-        json={"email": "superuser@domain.com", "password": "123"},
+        "/auth/login", data={"username": email, "password": bad_password}
     )
-    response = client.post(
-        "/auth/login",
-        headers={
-            "accept": "application/json",
-            "Content-Type": "application/x-www-form-urlencoded",
-        },
-        data={"username": "superuser@domain.com", "password": "456"},
-    )
-    print(response)
-    print(response.json())
+
     assert response.status_code == 400
-    assert response.json()["detail"] == "LOGIN_BAD_CREDENTIALS"
+    assert response.json() == {"detail": "LOGIN_BAD_CREDENTIALS"}

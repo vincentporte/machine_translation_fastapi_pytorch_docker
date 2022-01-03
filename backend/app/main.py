@@ -32,7 +32,7 @@ from app.core.users import current_active_user
 # enable schemas to read relationship between models
 Tortoise.init_models(["app.database.models"], "models")
 
-from app.routes import users  # products, destinations, prices, tasks, users
+from app.routes import users, products  # destinations, prices, tasks, users
 
 #########################################################################
 # APP
@@ -48,11 +48,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# app.include_router(products.router, tags=["products"])
+app.include_router(users.router, tags=["users"])
+app.include_router(products.router, tags=["products"])
 # app.include_router(destinations.router, tags=["destinations"])
 # app.include_router(prices.router, tags=["prices"])
 # app.include_router(tasks.router, tags=["tasks"])
-app.include_router(users.router, tags=["users"])
 
 register_tortoise(app, config=TORTOISE_ORM, generate_schemas=True)
 
