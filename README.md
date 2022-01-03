@@ -36,13 +36,8 @@
 <h3 align="center">char level seq2seq machine translation</h3>
 
   <p align="center">
-    character level machine translation, using fastapi, pytorch sequence 2 sequence model and docker 
+    character level machine translation, using fastapi, pytorch sequence 2 sequence model and docker
     <br />
-    <a href="https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker"><strong>Explore the docs »</strong></a>
-    <br />
-    <br />
-    <a href="https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker">View Demo</a>
-    ·
     <a href="https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker/issues">Report Bug</a>
     ·
     <a href="https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker/issues">Request Feature</a>
@@ -82,9 +77,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
-
-Here's a blank template to get started: To avoid retyping too much info. Do a search and replace with your text editor for the following: `vincentporte`, `machine_translation_fastapi_pytorch_docker`, `twitter_handle`, `vincentporte`, `email`, `email_client`, `char level seq2seq machine translation`, `project_description`
+You can use this project to easily setup a machine translation api for authenticated user. You can add your own translation in database, train your models using these translation and deploy it like a charm.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -92,14 +85,12 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 
 ### Built With
 
-* [Next.js](https://nextjs.org/)
-* [React.js](https://reactjs.org/)
-* [Vue.js](https://vuejs.org/)
-* [Angular](https://angular.io/)
-* [Svelte](https://svelte.dev/)
-* [Laravel](https://laravel.com)
-* [Bootstrap](https://getbootstrap.com)
-* [JQuery](https://jquery.com)
+* [FastAPI](https://fastapi.tiangolo.com/)
+* [FastAPI users](https://fastapi-users.github.io/)
+* [Pytorch](https://pytorch.org/)
+* [PostgreSQL](https://www.postgresql.org/)
+* [Nginx](https://www.nginx.com/)
+* [Docker](https://www.docker.com/)
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -111,29 +102,117 @@ Here's a blank template to get started: To avoid retyping too much info. Do a se
 This is an example of how you may give instructions on setting up your project locally.
 To get a local copy up and running follow these simple example steps.
 
-### Prerequisites
+### Prerequisites (based on Ubuntu 20.04 LTS)
 
-This is an example of how to list things you need to use the software and how to install them.
-* npm
+* Update existing packages, and install a few prerequisite packages which let apt use packages over HTTPS
   ```sh
-  npm install npm@latest -g
+  sudo apt update && sudo apt upgrade -y
+  sudo apt install -y apt-transport-https ca-certificates curl software-properties-common gnupg-agent
+  ```
+* Add docker signin keys
+  ```sh
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  ```
+* Verify signature
+  ```sh
+  sudo apt-key fingerprint 0EBFCD88
+  ```
+  output must look like
+  ```sh
+  pub   rsa4096 2017-02-22 [SCEA]
+        9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88
+  uid           [ unknown] Docker Release (CE deb) <docker@docker.com>
+  sub   rsa4096 2017-02-22 [S]
+  ```
+* Add docker repository
+  ```sh
+  sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+  sudo apt-get update  ```
+* Install docker
+  ```sh
+  sudo apt-get install docker-ce docker-ce-cli containerd.io -y
+  ```
+* Add user to docker group
+  ```sh
+  sudo usermod -a -G docker $USER
+  ```
+  then logout
+* Install docker-compose v2.2.2 (latest at 2021-12-29)
+  ```sh
+  sudo curl -L "https://github.com/docker/compose/releases/download/v2.2.2/docker-compose-linux-x86_64" -o /usr/local/bin/docker-compose
+  sudo chmod +x /usr/local/bin/docker-compose
   ```
 
 ### Installation
 
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker.git
-   ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```js
-   const API_KEY = 'ENTER YOUR API';
-   ```
+* Clone the repo
+  ```sh
+  git clone https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker.git
+  ```
+* Build the docker image
+  ```sh
+  docker-compose build backend
+  ```
+* Setup keys and credentials in `.env`
+  ```python
+  POSTGRES_USER=db_user
+  POSTGRES_PASSWORD=db_pass
+  POSTGRES_DB=db_name
+  SECRET_KEY=secret_key_for_users_management
+  DATABASE_URL=postgres://db_user:db_pass@db:5432/db_name
+  ```
+* Run your containers
+  ```sh
+  docker-compose up -d;docker-compose logs -f
+  ```
+* Init you database
+  ```sh
+  docker-compose exec backend aerich init-db
+  ```
+* Run tests
+  ```sh
+  docker-compose exec backend pytest
+
+### Setup superuser (after you registered it through API endpoint)
+* Access DB cmd line
+  ```sh
+  docker exec -it mt_db psql -U db_user -h 127.0.0.1 -W db_name
+  ```
+* Grant superuser rigths
+  ```sh
+  UPDATE usermodel SET is_superuser = 't', is_verified = 't' WHERE email = 'superuser@domain.com';
+  ```
+
+### Upgrade Database Model
+* Generate migration file
+  ```sh
+  docker-compose exec backend aerich migrate
+  ```
+  ```sh
+  docker-compose exec backend aerich upgrade
+  ```
+
+### Deployement
+
+* Replace /config/nginx/nginx.conf with nginx.conf.live
+* Update server_name refs
+  ```sh
+  server_name subdomain.domain.com;
+  ```
+* Add CAA record in your DNS
+  ```sh
+  sudomain.domain.com. CAA 0 issue letsencrypt.org
+  ```
+* Update refs in letsencrypt.sh
+  ```sh
+  domains=(subdomain.domain.com)
+  email="contact@domain.com"
+  ```
+* Run letsencrypt.sh script to setup certificates
+  ```sh
+  exec sudo ./init-letsencrypt.sh
+  ```
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -142,9 +221,17 @@ This is an example of how to list things you need to use the software and how to
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+* Register new user
+  ```sh
+  http://localhost/auth/register
+  ```
+* Log in
+  ```sh
+  http://localhost/auth/login
+  ```
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+
+_For more examples, please refer to the [Documentation](http://localhost/docs)_
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -153,10 +240,13 @@ _For more examples, please refer to the [Documentation](https://example.com)_
 <!-- ROADMAP -->
 ## Roadmap
 
-- [] Feature 1
-- [] Feature 2
-- [] Feature 3
-    - [] Nested Feature
+- [] Train translation model with users dataset
+    - [] add translation pairs in DB
+    - [] extract dataset and train pytorch model
+- [] User Verification by email
+    - [] setup mailgun API Key
+- [] Named entity recognition to extract part of text to translate
+    - [] setup spay
 
 See the [open issues](https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker/issues) for a full list of proposed features (and known issues).
 
@@ -185,7 +275,7 @@ Don't forget to give the project a star! Thanks again!
 <!-- LICENSE -->
 ## License
 
-Distributed under the MIT License. See `LICENSE.txt` for more information.
+Distributed under the GPL-3.0 License. See `LICENSE.txt` for more information.
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
@@ -194,7 +284,7 @@ Distributed under the MIT License. See `LICENSE.txt` for more information.
 <!-- CONTACT -->
 ## Contact
 
-Your Name - vincent@neuralia.co
+Vincent PORTE - contact@neuralia.co
 
 Project Link: [https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker](https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker)
 
@@ -205,9 +295,11 @@ Project Link: [https://github.com/vincentporte/machine_translation_fastapi_pytor
 <!-- ACKNOWLEDGMENTS -->
 ## Acknowledgments
 
-* []()
-* []()
-* []()
+* [Choose an Open Source License](https://choosealicense.com)
+* [GitHub Pages](https://pages.github.com)
+* [How To Install and Use Docker Compose on Ubuntu 20.04](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-compose-on-ubuntu-20-04)
+* [Certificate Authority Authorization (CAA)](https://letsencrypt.org/docs/caa/)
+
 
 <p align="right">(<a href="#top">back to top</a>)</p>
 
