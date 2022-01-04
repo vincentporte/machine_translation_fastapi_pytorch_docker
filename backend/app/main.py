@@ -1,4 +1,6 @@
 from fastapi import Depends, FastAPI
+from fastapi.openapi.utils import get_openapi
+
 from fastapi.middleware.cors import (
     CORSMiddleware,
 )  #  Cross Origin Resource Sharing (CORS) management
@@ -60,6 +62,35 @@ from app.routes import users, products, translation, ner
 #########################################################################
 app = FastAPI()
 
+
+def my_schema():
+    DOCS_TITLE = "Machine Translation API"
+    DOCS_VERSION = "1.0"
+    openapi_schema = get_openapi(
+        title=DOCS_TITLE,
+        version=DOCS_VERSION,
+        routes=app.routes,
+    )
+    openapi_schema["info"] = {
+        "title": DOCS_TITLE,
+        "version": DOCS_VERSION,
+        "description": "Sequence 2 Sequence Model with Attention + Named Entities Recognition",
+        "contact": {
+            "name": "Get Help with this API",
+            "url": "https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker/",
+            "email": "contact@neuralia.co",
+        },
+        "license": {
+            "name": "GPL-3.0 License ",
+            "url": "https://github.com/vincentporte/machine_translation_fastapi_pytorch_docker/blob/main/LICENSE",
+        },
+    }
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+
+
+app.openapi = my_schema
+
 #  Cross Origin Resource Sharing (CORS) management
 app.add_middleware(
     CORSMiddleware,
@@ -88,3 +119,16 @@ async def home():
 @app.get("/status")
 async def health():
     return {"msg": "status up"}
+
+
+"""
+def my_schema():
+    openapi_schema = get_openapi(
+        title="Machine Translation, using Sequence 2 Sequence Model with Attention + Named Entities Recognition",
+        version="1.0",
+        description="Demo version, play with it and ask me anything",
+        routes=app.routes,
+    )
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
+"""
