@@ -112,23 +112,10 @@ register_tortoise(app, config=TORTOISE_ORM, generate_schemas=True)
 @app.get("/")
 async def home():
     return {
-        "msg": f"wercome on our character level sequence 2 sequence machine translation demo"
+        "msg": f"welcome on our character level sequence 2 sequence machine translation demo"
     }
 
 
 @app.get("/status")
 async def health():
     return {"msg": "status up"}
-
-
-"""
-def my_schema():
-    openapi_schema = get_openapi(
-        title="Machine Translation, using Sequence 2 Sequence Model with Attention + Named Entities Recognition",
-        version="1.0",
-        description="Demo version, play with it and ask me anything",
-        routes=app.routes,
-    )
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-"""

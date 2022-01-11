@@ -19,7 +19,7 @@ router = APIRouter()
     "/translate",
     response_model=TranslationOutSchema,
     responses={404: {"model": HTTPNotFoundError}},
-    dependencies=[Depends(current_active_user)],
+    # dependencies=[Depends(current_active_user)],
 )
 async def translate(entities: TranslationInSchema) -> TranslationOutSchema:
     return await crud.translate_entities(entities)

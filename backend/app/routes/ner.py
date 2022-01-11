@@ -9,7 +9,7 @@ router = APIRouter()
 @router.post(
     "/ner",
     response_model=NerEntities,
-    dependencies=[Depends(current_active_user)],
+    # dependencies=[Depends(current_active_user)],
 )
 async def api_ner(query: NerQuery) -> NerEntities:
     return get_entities(query)
